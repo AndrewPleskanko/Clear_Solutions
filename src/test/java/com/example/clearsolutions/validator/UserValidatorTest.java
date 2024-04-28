@@ -11,7 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.example.clearsolutions.dto.UserDto;
-
+import com.example.clearsolutions.exceptions.InvalidDateRangeException;
+import com.example.clearsolutions.exceptions.UserUnderAgeException;
 
 @DisplayName("UserValidator Test")
 public class UserValidatorTest {
@@ -33,7 +34,7 @@ public class UserValidatorTest {
 
         // When
         // Then
-        assertDoesNotThrow(() -> userValidator.validateUser(user));
+        assertDoesNotThrow(() -> userValidator.validate(user,null));
     }
 
     @Test
@@ -45,7 +46,7 @@ public class UserValidatorTest {
 
         // When
         // Then
-        assertDoesNotThrow(() -> userValidator.validateUser(user));
+        assertDoesNotThrow(() -> userValidator.validate(user,null));
     }
 
     @Test
@@ -57,7 +58,7 @@ public class UserValidatorTest {
 
         // When
         // Then
-        assertThrows(IllegalArgumentException.class, () -> userValidator.validateUser(user));
+        assertThrows(UserUnderAgeException.class, () -> userValidator.validate(user,null));
     }
 
     @Test
@@ -81,7 +82,7 @@ public class UserValidatorTest {
 
         // When
         // Then
-        assertThrows(IllegalArgumentException.class, () -> userValidator.validateDateRange(from, to));
+        assertThrows(InvalidDateRangeException.class, () -> userValidator.validateDateRange(from, to));
     }
 
     @Test

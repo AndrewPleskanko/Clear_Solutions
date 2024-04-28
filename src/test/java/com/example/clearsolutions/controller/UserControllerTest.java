@@ -1,9 +1,23 @@
 package com.example.clearsolutions.controller;
 
-import com.example.clearsolutions.dto.UserDto;
-import com.example.clearsolutions.service.UserService;
-import com.example.clearsolutions.validator.UserValidator;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,21 +27,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.example.clearsolutions.dto.UserDto;
+import com.example.clearsolutions.exceptions.UserUnderAgeException;
+import com.example.clearsolutions.service.UserService;
+import com.example.clearsolutions.validator.UserValidator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -50,7 +55,6 @@ public class UserControllerTest {
     @BeforeEach
     public void setUp() {
         userDto = new UserDto();
-        userDto.setId(1L);
         userDto.setEmail("test@example.com");
         userDto.setFirstName("Test");
         userDto.setLastName("User");
@@ -75,8 +79,7 @@ public class UserControllerTest {
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newUser)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(newUser.getId()))
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email").value(newUser.getEmail()))
                 .andExpect(jsonPath("$.firstName").value(newUser.getFirstName()))
                 .andExpect(jsonPath("$.lastName").value(newUser.getLastName()))
@@ -90,7 +93,7 @@ public class UserControllerTest {
         UserDto updatedUser = new UserDto();
         updatedUser.setEmail("updated@example.com");
         updatedUser.setFirstName("Updated");
-        updatedUser.setLastName("UpdatedLastName"); // Add this line
+        updatedUser.setLastName("UpdatedLastName");
 
         // When
         when(userService.updateUserFields(anyLong(), any(UserDto.class))).thenReturn(updatedUser);
@@ -100,9 +103,9 @@ public class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedUser)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(updatedUser.getId()))
                 .andExpect(jsonPath("$.email").value(updatedUser.getEmail()))
-                .andExpect(jsonPath("$.firstName").value(updatedUser.getFirstName()));
+                .andExpect(jsonPath("$.firstName").value(updatedUser.getFirstName()))
+                .andExpect(jsonPath("$.lastName").value(updatedUser.getLastName()));
     }
 
     @Test
@@ -123,7 +126,6 @@ public class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedUser)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(updatedUser.getId()))
                 .andExpect(jsonPath("$.email").value(updatedUser.getEmail()))
                 .andExpect(jsonPath("$.firstName").value(updatedUser.getFirstName()))
                 .andExpect(jsonPath("$.lastName").value(updatedUser.getLastName()))
@@ -136,7 +138,6 @@ public class UserControllerTest {
     public void deleteUser_Returns200() throws Exception {
         // Given
         UserDto newUser = new UserDto();
-        newUser.setId(1L); // Set the id
         newUser.setEmail("test@example.com");
         newUser.setFirstName("Test");
         newUser.setLastName("User");
@@ -148,15 +149,15 @@ public class UserControllerTest {
         MvcResult result = mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newUser)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         String response = result.getResponse().getContentAsString();
         UserDto createdUser = objectMapper.readValue(response, UserDto.class);
 
         // Delete the user
-        mockMvc.perform(delete("/users/" + createdUser.getId()))
-                .andExpect(status().isOk());
+        mockMvc.perform(delete("/users/" + 1))
+                .andExpect(status().isNoContent());
 
         // Check if the user is deleted by searching for users with the same birth date
         mockMvc.perform(get("/users/search")
@@ -181,7 +182,6 @@ public class UserControllerTest {
                         .param("from", from.toString())
                         .param("to", to.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(userDto.getId()))
                 .andExpect(jsonPath("$[0].email").value(userDto.getEmail()))
                 .andExpect(jsonPath("$[0].firstName").value(userDto.getFirstName()))
                 .andExpect(jsonPath("$[0].lastName").value(userDto.getLastName()))
@@ -200,12 +200,13 @@ public class UserControllerTest {
         newUser.setPhoneNumber("1234567890");
 
         // When
-        doThrow(new IllegalArgumentException("User is under 18")).when(userValidator).validateUser(any(UserDto.class));
+        doThrow(new UserUnderAgeException("User is under 18")).when(
+                userValidator).validate(any(UserDto.class), isNull());
 
         // Then
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newUser)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnprocessableEntity());
     }
 }

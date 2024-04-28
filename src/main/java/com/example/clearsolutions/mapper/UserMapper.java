@@ -20,7 +20,6 @@ public interface UserMapper {
      * @param user the User entity
      * @return the UserDto
      */
-    @Mapping(source = "id", target = "id")
     @Mapping(source = "email", target = "email")
     @Mapping(source = "firstName", target = "firstName")
     @Mapping(source = "lastName", target = "lastName")
@@ -35,7 +34,6 @@ public interface UserMapper {
      * @param userDto the UserDto
      * @return the User entity
      */
-    @Mapping(source = "id", target = "id")
     @Mapping(source = "email", target = "email")
     @Mapping(source = "firstName", target = "firstName")
     @Mapping(source = "lastName", target = "lastName")

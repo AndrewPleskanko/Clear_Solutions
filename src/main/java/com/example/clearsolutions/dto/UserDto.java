@@ -34,7 +34,7 @@ public class UserDto {
 
     private String address;
 
-    @Pattern(regexp = "\\d+", message = "Phone number should contain only digits")
+    @Pattern(regexp = "\\d{7,10}", message = "Phone number should contain between 7 and 10 digits")
     private String phoneNumber;
 }
 

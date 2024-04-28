@@ -3,6 +3,8 @@ package com.example.clearsolutions.controller;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -42,35 +44,38 @@ public class UserController {
      */
     @PostMapping
     @Operation(summary = "Create a new user")
-    public UserDto createUser(@Valid @RequestBody UserDto user) {
-        userValidator.validateUser(user);
-        return userService.createUser(user);
+    public ResponseEntity<?> createUser(@Valid @RequestBody UserDto user) {
+        userValidator.validate(user, null);
+        UserDto createdUser = userService.createUser(user);
+        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
     /**
      * Update specific fields of a user.
      *
-     * @param id the id of the user to update
+     * @param id   the id of the user to update
      * @param user the user data to update
      * @return the updated user
      */
     @PatchMapping("/{id}")
     @Operation(summary = "Update specific fields of a user")
-    public UserDto updateUserFields(@PathVariable Long id, @Valid @RequestBody UserDto user) {
-        return userService.updateUserFields(id, user);
+    public ResponseEntity<UserDto> updateUserFields(@PathVariable Long id, @Valid @RequestBody UserDto user) {
+        UserDto updatedUser = userService.updateUserFields(id, user);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
     /**
      * Update a user.
      *
-     * @param id the id of the user to update
+     * @param id   the id of the user to update
      * @param user the user data to update
      * @return the updated user
      */
     @PutMapping("/{id}")
     @Operation(summary = "Update a user")
-    public UserDto updateUser(@PathVariable Long id, @Valid @RequestBody UserDto user) {
-        return userService.updateUser(id, user);
+    public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @Valid @RequestBody UserDto user) {
+        UserDto updatedUser = userService.updateUser(id, user);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
     /**
@@ -80,22 +85,26 @@ public class UserController {
      */
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a user")
-    public void deleteUser(@PathVariable Long id) {
+    public ResponseEntity<UserDto> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     /**
      * Search users by birthdate range.
      *
      * @param from the start of the birthdate range
-     * @param to the end of the birthdate range
+     * @param to   the end of the birthdate range
      * @return the users found
      */
     @GetMapping("/search")
     @Operation(summary = "Search users by birth date range")
-    public List<UserDto> searchUsersByBirthDateRange(@RequestParam LocalDate from, @RequestParam LocalDate to) {
+    public ResponseEntity<?> searchUsersByBirthDateRange(
+            @RequestParam LocalDate from, @RequestParam LocalDate to) {
         userValidator.validateDateRange(from, to);
-        return userService.searchUsersByBirthDateRange(from, to);
+
+        List<UserDto> users = userService.searchUsersByBirthDateRange(from, to);
+        return new ResponseEntity<>(users, HttpStatus.OK);
     }
 }
 

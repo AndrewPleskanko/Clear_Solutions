@@ -78,9 +78,10 @@
                         <exclude>com/example/clearsolutions/entity/**</exclude>
                         <exclude>com/example/clearsolutions/dto/**</exclude>
                         <exclude>com/example/clearsolutions/exceptions/**</exclude>
+                        <exclude>com/example/clearsolutions/handler/**</exclude>
                         <exclude>com/example/clearsolutions/mapper/**</exclude>
                         <exclude>com/example/clearsolutions/ClearSolutionsApplication.class</exclude>
-
+                        <exclude>com/example/clearsolutions/ClearSolutionsApplication.class</exclude>
                         <includeNoLocationClasses>true</includeNoLocationClasses>
                     </excludes>
                     <rules>

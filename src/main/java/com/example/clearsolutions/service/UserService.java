@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.clearsolutions.dto.UserDto;
 import com.example.clearsolutions.entity.User;
+import com.example.clearsolutions.exceptions.UserNotFoundException;
 import com.example.clearsolutions.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,8 +58,6 @@ public class UserService {
         Optional.ofNullable(userDto.getAddress()).ifPresent(existingUser::setAddress);
         Optional.ofNullable(userDto.getPhoneNumber()).ifPresent(existingUser::setPhoneNumber);
 
-        existingUser.setId(id);
-
         log.info("User fields updated for id: {}, user: {}", id, existingUser);
         return userMapper.toUserDto(existingUser);
     }
@@ -71,12 +70,17 @@ public class UserService {
      * @return the updated user data transfer object
      */
     public UserDto updateUser(Long id, UserDto userDto) {
-        deleteUser(id);
-        User user = userMapper.toUser(userDto);
-        user.setId(id);
-        users.add(user);
-        log.info("User updated for id: {}, user: {}", id, user);
-        return userMapper.toUserDto(user);
+        User existingUser = getUserById(id);
+
+        existingUser.setEmail(userDto.getEmail());
+        existingUser.setFirstName(userDto.getFirstName());
+        existingUser.setLastName(userDto.getLastName());
+        existingUser.setBirthDate(userDto.getBirthDate());
+        existingUser.setAddress(userDto.getAddress());
+        existingUser.setPhoneNumber(userDto.getPhoneNumber());
+
+        log.info("User updated for id: {}, user: {}", id, existingUser);
+        return userMapper.toUserDto(existingUser);
     }
 
     /**
@@ -112,7 +116,7 @@ public class UserService {
      *
      * @param id the id of the user to retrieve
      * @return the user
-     * @throws IllegalArgumentException if the user is not found
+     * @throws UserNotFoundException if the user is not found
      */
     private User getUserById(Long id) {
         return users.stream()
@@ -120,7 +124,7 @@ public class UserService {
                 .findFirst()
                 .orElseThrow(() -> {
                     log.error("User not found for id: {}", id);
-                    return new IllegalArgumentException("User not found");
+                    return new UserNotFoundException("User not found");
                 });
     }
 }
