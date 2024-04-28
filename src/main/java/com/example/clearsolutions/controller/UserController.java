@@ -20,18 +20,30 @@ import com.example.clearsolutions.dto.UserDto;
 import com.example.clearsolutions.service.UserService;
 import com.example.clearsolutions.validator.UserValidator;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Controller for managing users.
  */
+@Slf4j
 @Tag(name = "User Controller", description = "Operations pertaining to users")
 @RestController
-@RequestMapping("/users")
+@RequestMapping("api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
+
+    private static final String APPLICATION_JSON = "application/json";
+    private static final String INTERNAL_SERVER_ERROR = "Internal server error";
+    private static final String INVALID_USER_INPUT = "Invalid user input";
+    private static final String RESPONSE_CODE_400 = "400";
+    private static final String RESPONSE_CODE_500 = "500";
 
     private final UserService userService;
     private final UserValidator userValidator;
@@ -39,14 +51,23 @@ public class UserController {
     /**
      * Create a new user.
      *
-     * @param user the user to create
+     * @param userDto the user to create
      * @return the created user
      */
     @PostMapping
     @Operation(summary = "Create a new user")
-    public ResponseEntity<?> createUser(@Valid @RequestBody UserDto user) {
-        userValidator.validate(user, null);
-        UserDto createdUser = userService.createUser(user);
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "User created successfully",
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = UserDto.class))}),
+            @ApiResponse(responseCode = RESPONSE_CODE_400, description = INVALID_USER_INPUT,
+                    content = @Content),
+            @ApiResponse(responseCode = RESPONSE_CODE_500, description = INTERNAL_SERVER_ERROR,
+                    content = @Content)})
+    public ResponseEntity<?> createUser(@Valid @RequestBody UserDto userDto) {
+        log.info("Received request to create user: {}", userDto);
+        userValidator.validate(userDto, null);
+        UserDto createdUser = userService.createUser(userDto);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
@@ -54,13 +75,24 @@ public class UserController {
      * Update specific fields of a user.
      *
      * @param id   the id of the user to update
-     * @param user the user data to update
+     * @param userDto the user data to update
      * @return the updated user
      */
     @PatchMapping("/{id}")
     @Operation(summary = "Update specific fields of a user")
-    public ResponseEntity<UserDto> updateUserFields(@PathVariable Long id, @Valid @RequestBody UserDto user) {
-        UserDto updatedUser = userService.updateUserFields(id, user);
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User updated successfully",
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = UserDto.class))}),
+            @ApiResponse(responseCode = RESPONSE_CODE_400, description = INVALID_USER_INPUT,
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content),
+            @ApiResponse(responseCode = RESPONSE_CODE_500, description = INTERNAL_SERVER_ERROR,
+                    content = @Content)})
+    public ResponseEntity<UserDto> updateUserFields(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
+        log.info("Received request to update user fields for id: {}, with data: {}", id, userDto);
+        UserDto updatedUser = userService.updateUserFields(id, userDto);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
@@ -68,13 +100,24 @@ public class UserController {
      * Update a user.
      *
      * @param id   the id of the user to update
-     * @param user the user data to update
+     * @param userDto the user data to update
      * @return the updated user
      */
     @PutMapping("/{id}")
     @Operation(summary = "Update a user")
-    public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @Valid @RequestBody UserDto user) {
-        UserDto updatedUser = userService.updateUser(id, user);
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User updated successfully",
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = UserDto.class))}),
+            @ApiResponse(responseCode = RESPONSE_CODE_400, description = INVALID_USER_INPUT,
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content),
+            @ApiResponse(responseCode = RESPONSE_CODE_500, description = INTERNAL_SERVER_ERROR,
+                    content = @Content)})
+    public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
+        log.info("Received request to update user with id: {}, with data: {}", id, userDto);
+        UserDto updatedUser = userService.updateUser(id, userDto);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
@@ -85,7 +128,15 @@ public class UserController {
      */
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "User deleted successfully",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content),
+            @ApiResponse(responseCode = RESPONSE_CODE_500, description = INTERNAL_SERVER_ERROR,
+                    content = @Content)})
     public ResponseEntity<UserDto> deleteUser(@PathVariable Long id) {
+        log.info("Received request to delete user with id: {}", id);
         userService.deleteUser(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -99,10 +150,18 @@ public class UserController {
      */
     @GetMapping("/search")
     @Operation(summary = "Search users by birth date range")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Users found successfully",
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = UserDto.class))}),
+            @ApiResponse(responseCode = RESPONSE_CODE_400, description = "Invalid date range input",
+                    content = @Content),
+            @ApiResponse(responseCode = RESPONSE_CODE_500, description = INTERNAL_SERVER_ERROR,
+                    content = @Content)})
     public ResponseEntity<?> searchUsersByBirthDateRange(
             @RequestParam LocalDate from, @RequestParam LocalDate to) {
+        log.info("Received request to search users by birth date range from: {}, to: {}", from, to);
         userValidator.validateDateRange(from, to);
-
         List<UserDto> users = userService.searchUsersByBirthDateRange(from, to);
         return new ResponseEntity<>(users, HttpStatus.OK);
     }

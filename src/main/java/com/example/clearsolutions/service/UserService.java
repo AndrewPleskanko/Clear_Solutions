@@ -34,6 +34,7 @@ public class UserService {
      * @return the created user data transfer object
      */
     public UserDto createUser(UserDto userDto) {
+        log.debug("Creating user with data: {}", userDto);
         User user = userMapper.toUser(userDto);
         user.setId(counter.incrementAndGet());
         users.add(user);
@@ -44,12 +45,13 @@ public class UserService {
     /**
      * Updates the fields of an existing user.
      *
-     * @param id the id of the user to update
+     * @param id      the id of the user to update
      * @param userDto the user data transfer object with the new values
      * @return the updated user data transfer object
      */
     public UserDto updateUserFields(Long id, UserDto userDto) {
-        User existingUser = getUserById(id);
+        log.debug("Updating user fields for id: {}, with data: {}", id, userDto);
+        User existingUser = readById(id);
 
         Optional.ofNullable(userDto.getEmail()).ifPresent(existingUser::setEmail);
         Optional.ofNullable(userDto.getFirstName()).ifPresent(existingUser::setFirstName);
@@ -65,12 +67,13 @@ public class UserService {
     /**
      * Updates an existing user.
      *
-     * @param id the id of the user to update
+     * @param id      the id of the user to update
      * @param userDto the user data transfer object with the new values
      * @return the updated user data transfer object
      */
     public UserDto updateUser(Long id, UserDto userDto) {
-        User existingUser = getUserById(id);
+        log.debug("Updating user with id: {}, with data: {}", id, userDto);
+        User existingUser = readById(id);
 
         existingUser.setEmail(userDto.getEmail());
         existingUser.setFirstName(userDto.getFirstName());
@@ -89,7 +92,8 @@ public class UserService {
      * @param id the id of the user to delete
      */
     public void deleteUser(Long id) {
-        User user = getUserById(id);
+        log.debug("Deleting user with id: {}", id);
+        User user = readById(id);
         users.remove(user);
         log.info("User deleted for id: {}", id);
     }
@@ -98,14 +102,15 @@ public class UserService {
      * Searches users by birthdate range.
      *
      * @param from the start of the date range
-     * @param to the end of the date range
+     * @param to   the end of the date range
      * @return a list of user data transfer objects that match the date range
      */
     public List<UserDto> searchUsersByBirthDateRange(LocalDate from, LocalDate to) {
+        log.debug("Searching users by birth date range from: {}, to: {}", from, to);
         List<User> filteredUsers = users.stream()
                 .filter(user -> !user.getBirthDate().isBefore(from) && !user.getBirthDate().isAfter(to))
-                .collect(Collectors.toList());
-        log.info("Users searched by birth date range from: {}, to: {}, result: {}", from, to, filteredUsers);
+                .toList();
+        log.info("Users found: {}", users);
         return filteredUsers.stream()
                 .map(userMapper::toUserDto)
                 .collect(Collectors.toList());
@@ -118,7 +123,8 @@ public class UserService {
      * @return the user
      * @throws UserNotFoundException if the user is not found
      */
-    private User getUserById(Long id) {
+    private User readById(Long id) {
+        log.debug("Reading user by id: {}", id);
         return users.stream()
                 .filter(u -> u.getId().equals(id))
                 .findFirst()

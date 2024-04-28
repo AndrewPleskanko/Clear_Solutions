@@ -76,7 +76,7 @@ public class UserControllerTest {
         when(userService.createUser(any(UserDto.class))).thenReturn(newUser);
 
         // Then
-        mockMvc.perform(post("/users")
+        mockMvc.perform(post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newUser)))
                 .andExpect(status().isCreated())
@@ -99,7 +99,7 @@ public class UserControllerTest {
         when(userService.updateUserFields(anyLong(), any(UserDto.class))).thenReturn(updatedUser);
 
         // Then
-        mockMvc.perform(patch("/users/1")
+        mockMvc.perform(patch("/api/v1/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedUser)))
                 .andExpect(status().isOk())
@@ -122,7 +122,7 @@ public class UserControllerTest {
         when(userService.updateUser(anyLong(), any(UserDto.class))).thenReturn(updatedUser);
 
         // Then
-        mockMvc.perform(put("/users/1")
+        mockMvc.perform(put("/api/v1/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedUser)))
                 .andExpect(status().isOk())
@@ -146,7 +146,7 @@ public class UserControllerTest {
 
         // Create the user
         when(userService.createUser(any(UserDto.class))).thenReturn(newUser);
-        MvcResult result = mockMvc.perform(post("/users")
+        MvcResult result = mockMvc.perform(post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newUser)))
                 .andExpect(status().isCreated())
@@ -156,11 +156,11 @@ public class UserControllerTest {
         UserDto createdUser = objectMapper.readValue(response, UserDto.class);
 
         // Delete the user
-        mockMvc.perform(delete("/users/" + 1))
+        mockMvc.perform(delete("/api/v1/users/" + 1))
                 .andExpect(status().isNoContent());
 
         // Check if the user is deleted by searching for users with the same birth date
-        mockMvc.perform(get("/users/search")
+        mockMvc.perform(get("/api/v1/users/search")
                         .param("from", createdUser.getBirthDate().toString())
                         .param("to", createdUser.getBirthDate().toString()))
                 .andExpect(status().isOk())
@@ -178,7 +178,7 @@ public class UserControllerTest {
         when(userService.searchUsersByBirthDateRange(any(LocalDate.class), any(LocalDate.class))).thenReturn(users);
 
         // Then
-        mockMvc.perform(get("/users/search")
+        mockMvc.perform(get("/api/v1/users/search")
                         .param("from", from.toString())
                         .param("to", to.toString()))
                 .andExpect(status().isOk())
@@ -204,7 +204,7 @@ public class UserControllerTest {
                 userValidator).validate(any(UserDto.class), isNull());
 
         // Then
-        mockMvc.perform(post("/users")
+        mockMvc.perform(post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newUser)))
                 .andExpect(status().isUnprocessableEntity());

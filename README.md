@@ -23,7 +23,16 @@ section. In the VM options field, enter the following:
 -Duser.min.age=18
 ```
 
-This sets the minimum age of the user to 18 as a requirement to use the application.
+## Testing the Project with Postman
+
+#### To test the project using the provided Postman collection, follow these steps:
+
+Download the Collection: Download the Postman collection from the project repository. The collection file in the root
+directory of the project.
+Import the Collection: Open Postman, click on File -> Import... and navigate to the location where you saved the
+downloaded Postman collection file.
+Run the Requests: Once the collection is imported, you can run the requests to test the different endpoints of the
+application. Make sure your application is running when you send the requests.
 
 ## Run the Project
 
