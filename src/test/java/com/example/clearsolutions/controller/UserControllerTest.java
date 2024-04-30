@@ -3,6 +3,7 @@ package com.example.clearsolutions.controller;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -27,6 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.example.clearsolutions.dto.UserDto;
+import com.example.clearsolutions.exceptions.UserUnderAgeException;
 import com.example.clearsolutions.service.UserService;
 import com.example.clearsolutions.validator.UserDtoValidator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -184,5 +186,26 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$[0].lastName").value(userDto.getLastName()))
                 .andExpect(jsonPath("$[0].birthDate").value(userDto.getBirthDate().toString()))
                 .andExpect(jsonPath("$[0].phoneNumber").value(userDto.getPhoneNumber()));
+    }
+
+    @Test
+    public void createUser_UnderAge_Returns400() throws Exception {
+        // Given
+        UserDto newUser = new UserDto();
+        newUser.setEmail("test@example.com");
+        newUser.setFirstName("Test");
+        newUser.setLastName("User");
+        newUser.setBirthDate(LocalDate.now().minusYears(17));
+        newUser.setPhoneNumber("1234567890");
+
+        // When
+        doThrow(new UserUnderAgeException("User is under 18")).when(
+                userDtoValidator).validateUser(any(UserDto.class));
+
+        // Then
+        mockMvc.perform(post("/api/v1/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newUser)))
+                .andExpect(status().isBadRequest());
     }
 }

@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserException.class)
     public ResponseEntity<?> handleUserException(UserException e) {
         log.error("Handle user exception: {}", e.getMessage());
-        HttpStatus httpStatus = e.getClass().getAnnotation(ResponseStatus.class).value();
+        HttpStatus httpStatus = e.getClass().getAnnotation(ResponseStatus.class).code();
         return new ResponseEntity<>(e.getMessage(), httpStatus);
     }
 
