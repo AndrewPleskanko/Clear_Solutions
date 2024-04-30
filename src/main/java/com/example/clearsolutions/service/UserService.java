@@ -34,11 +34,11 @@ public class UserService {
      * @return the created user data transfer object
      */
     public UserDto createUser(UserDto userDto) {
-        log.debug("Creating user with data: {}", userDto);
+        log.info("Creating user with data: {}", userDto);
         User user = userMapper.toUser(userDto);
         user.setId(counter.incrementAndGet());
         users.add(user);
-        log.info("User created: {}", user);
+        log.debug("User created: {}", user);
         return userMapper.toUserDto(user);
     }
 
@@ -50,7 +50,7 @@ public class UserService {
      * @return the updated user data transfer object
      */
     public UserDto updateUserFields(Long id, UserDto userDto) {
-        log.debug("Updating user fields for id: {}, with data: {}", id, userDto);
+        log.info("Updating user fields for id: {}, with data: {}", id, userDto);
         User existingUser = readById(id);
 
         Optional.ofNullable(userDto.getEmail()).ifPresent(existingUser::setEmail);
@@ -60,7 +60,7 @@ public class UserService {
         Optional.ofNullable(userDto.getAddress()).ifPresent(existingUser::setAddress);
         Optional.ofNullable(userDto.getPhoneNumber()).ifPresent(existingUser::setPhoneNumber);
 
-        log.info("User fields updated for id: {}, user: {}", id, existingUser);
+        log.debug("User fields updated for id: {}, user: {}", id, existingUser);
         return userMapper.toUserDto(existingUser);
     }
 
@@ -72,7 +72,7 @@ public class UserService {
      * @return the updated user data transfer object
      */
     public UserDto updateUser(Long id, UserDto userDto) {
-        log.debug("Updating user with id: {}, with data: {}", id, userDto);
+        log.info("Updating user with id: {}, with data: {}", id, userDto);
         User existingUser = readById(id);
 
         existingUser.setEmail(userDto.getEmail());
@@ -82,7 +82,7 @@ public class UserService {
         existingUser.setAddress(userDto.getAddress());
         existingUser.setPhoneNumber(userDto.getPhoneNumber());
 
-        log.info("User updated for id: {}, user: {}", id, existingUser);
+        log.debug("User updated for id: {}, user: {}", id, existingUser);
         return userMapper.toUserDto(existingUser);
     }
 
@@ -92,10 +92,10 @@ public class UserService {
      * @param id the id of the user to delete
      */
     public void deleteUser(Long id) {
-        log.debug("Deleting user with id: {}", id);
+        log.info("Deleting user with id: {}", id);
         User user = readById(id);
         users.remove(user);
-        log.info("User deleted for id: {}", id);
+        log.debug("User deleted for id: {}", id);
     }
 
     /**
@@ -106,11 +106,11 @@ public class UserService {
      * @return a list of user data transfer objects that match the date range
      */
     public List<UserDto> searchUsersByBirthDateRange(LocalDate from, LocalDate to) {
-        log.debug("Searching users by birth date range from: {}, to: {}", from, to);
+        log.info("Searching users by birth date range from: {}, to: {}", from, to);
         List<User> filteredUsers = users.stream()
                 .filter(user -> !user.getBirthDate().isBefore(from) && !user.getBirthDate().isAfter(to))
                 .toList();
-        log.info("Users found: {}", users);
+        log.debug("Users found: {}", users);
         return filteredUsers.stream()
                 .map(userMapper::toUserDto)
                 .collect(Collectors.toList());
@@ -124,7 +124,7 @@ public class UserService {
      * @throws UserNotFoundException if the user is not found
      */
     private User readById(Long id) {
-        log.debug("Reading user by id: {}", id);
+        log.info("Reading user by id: {}", id);
         return users.stream()
                 .filter(u -> u.getId().equals(id))
                 .findFirst()

@@ -1,12 +1,9 @@
 package com.example.clearsolutions.validator;
 
 import java.time.LocalDate;
-import java.time.Period;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
 
 import com.example.clearsolutions.dto.UserDto;
 import com.example.clearsolutions.exceptions.InvalidDateRangeException;
@@ -18,33 +15,36 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component
-public class UserValidator implements Validator {
+public class UserDtoValidator {
 
     @Value("${user.min.age}")
     private int minAge;
 
-    @Override
-    public boolean supports(Class<?> clazz) {
-        return UserDto.class.equals(clazz);
-    }
-
-    @Override
-    public void validate(Object target, Errors errors) {
-        UserDto userDto = (UserDto) target;
-
-        int age = Period.between(userDto.getBirthDate(), LocalDate.now()).getYears();
-        if (age < minAge) {
+    /**
+     * Validates the user's age.
+     *
+     * @param userDto the user data transfer object
+     * @throws IllegalArgumentException if the user's age is less than the minimum age
+     */
+    public void validateUser(UserDto userDto) {
+        if (userDto.getBirthDate().isAfter(LocalDate.now().minusYears(minAge))) {
             log.error("User must be at least {} years old", minAge);
             throw new UserUnderAgeException("User must be at least " + minAge + " years old");
         }
-        log.info("Validation for UserDto completed successfully");
+        log.info("User validation passed for {}", userDto);
     }
 
+    /**
+     * Validates the date range.
+     *
+     * @param from the start of the date range
+     * @param to   the end of the date range
+     * @throws IllegalArgumentException if the 'from' date is after the 'to' date
+     */
     public void validateDateRange(LocalDate from, LocalDate to) {
         if (from.isAfter(to)) {
-            String errorMessage = String.format("'From' date %s must be less than 'To' date %s", from, to);
-            log.error(errorMessage);
-            throw new InvalidDateRangeException(errorMessage);
+            log.error("'From' date must be less than 'To' date");
+            throw new InvalidDateRangeException("'From' date must be less than 'To' date");
         }
         log.info("Date range validation passed for from: {}, to: {}", from, to);
     }

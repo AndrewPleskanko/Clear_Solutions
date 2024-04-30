@@ -8,10 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.example.clearsolutions.exceptions.InvalidDateRangeException;
-import com.example.clearsolutions.exceptions.UserNotFoundException;
-import com.example.clearsolutions.exceptions.UserUnderAgeException;
+import com.example.clearsolutions.exceptions.UserException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -22,22 +21,11 @@ import lombok.extern.slf4j.Slf4j;
 public class GlobalExceptionHandler {
     private static final long serialVersionUID = 1L;
 
-    @ExceptionHandler(UserUnderAgeException.class)
-    public ResponseEntity<?> handleUserUnderAgeException(UserUnderAgeException e) {
-        log.error("User under age exception: {}", e.getMessage());
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
-    }
-
-    @ExceptionHandler(InvalidDateRangeException.class)
-    public ResponseEntity<?> handleInvalidDateRangeException(InvalidDateRangeException e) {
-        log.error("Invalid date range exception: {}", e.getMessage());
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<?> handleException(UserNotFoundException e) {
-        log.error("User not found exception: {}", e.getMessage());
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<?> handleUserException(UserException e) {
+        log.error("Handle user exception: {}", e.getMessage());
+        HttpStatus httpStatus = e.getClass().getAnnotation(ResponseStatus.class).value();
+        return new ResponseEntity<>(e.getMessage(), httpStatus);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

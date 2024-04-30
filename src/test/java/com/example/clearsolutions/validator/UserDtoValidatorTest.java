@@ -15,14 +15,14 @@ import com.example.clearsolutions.exceptions.InvalidDateRangeException;
 import com.example.clearsolutions.exceptions.UserUnderAgeException;
 
 @DisplayName("UserValidator Test")
-public class UserValidatorTest {
+public class UserDtoValidatorTest {
 
-    private UserValidator userValidator;
+    private UserDtoValidator userDtoValidator;
 
     @BeforeEach
     public void setUp() {
-        userValidator = new UserValidator();
-        ReflectionTestUtils.setField(userValidator, "minAge", 18);
+        userDtoValidator = new UserDtoValidator();
+        ReflectionTestUtils.setField(userDtoValidator, "minAge", 18);
     }
 
     @Test
@@ -34,7 +34,7 @@ public class UserValidatorTest {
 
         // When
         // Then
-        assertDoesNotThrow(() -> userValidator.validate(user,null));
+        assertDoesNotThrow(() -> userDtoValidator.validateUser(user));
     }
 
     @Test
@@ -46,7 +46,7 @@ public class UserValidatorTest {
 
         // When
         // Then
-        assertDoesNotThrow(() -> userValidator.validate(user,null));
+        assertDoesNotThrow(() -> userDtoValidator.validateUser(user));
     }
 
     @Test
@@ -58,7 +58,7 @@ public class UserValidatorTest {
 
         // When
         // Then
-        assertThrows(UserUnderAgeException.class, () -> userValidator.validate(user,null));
+        assertThrows(UserUnderAgeException.class, () -> userDtoValidator.validateUser(user));
     }
 
     @Test
@@ -70,7 +70,7 @@ public class UserValidatorTest {
 
         // When
         // Then
-        assertDoesNotThrow(() -> userValidator.validateDateRange(from, to));
+        assertDoesNotThrow(() -> userDtoValidator.validateDateRange(from, to));
     }
 
     @Test
@@ -82,7 +82,7 @@ public class UserValidatorTest {
 
         // When
         // Then
-        assertThrows(InvalidDateRangeException.class, () -> userValidator.validateDateRange(from, to));
+        assertThrows(InvalidDateRangeException.class, () -> userDtoValidator.validateDateRange(from, to));
     }
 
     @Test
@@ -94,6 +94,6 @@ public class UserValidatorTest {
 
         // When
         // Then
-        assertDoesNotThrow(() -> userValidator.validateDateRange(from, to));
+        assertDoesNotThrow(() -> userDtoValidator.validateDateRange(from, to));
     }
 }
